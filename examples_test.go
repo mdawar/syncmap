@@ -10,7 +10,7 @@ func Example() {
 	m := syncmap.New[string, int]()
 
 	m.Set("a", 1)
-	m.Set("b", 1)
+	m.Set("b", 2)
 
 	m.Delete("b")
 
@@ -48,7 +48,16 @@ func ExampleNewWithCapacity() {
 func ExampleMap_All() {
 	m := syncmap.New[string, int]()
 
+	m.Set("a", 1)
+	m.Set("b", 2)
+	m.Set("c", 3)
+
 	for k, v := range m.All() {
 		fmt.Println("Key:", k, "-", "Value:", v)
 	}
+
+	// Output:
+	// Key: a - Value: 1
+	// Key: b - Value: 2
+	// Key: c - Value: 3
 }
