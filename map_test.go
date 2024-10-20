@@ -2,6 +2,7 @@ package syncmap_test
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ func TestMain(m *testing.M) {
 	goleak.VerifyTestMain(m)
 }
 
-func TestSetGet(t *testing.T) {
+func TestMapSetGet(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -40,7 +41,7 @@ func TestSetGet(t *testing.T) {
 	}
 }
 
-func TestLen(t *testing.T) {
+func TestMapLen(t *testing.T) {
 	t.Parallel()
 
 	m := syncmap.New[string, string]()
@@ -56,7 +57,7 @@ func TestLen(t *testing.T) {
 	require.Equal(t, 2, m.Len())
 }
 
-func TestDelete(t *testing.T) {
+func TestMapDelete(t *testing.T) {
 	t.Parallel()
 
 	m := syncmap.New[string, int]()
@@ -77,7 +78,7 @@ func TestDelete(t *testing.T) {
 	require.Equal(t, 1, m.Len())
 }
 
-func TestClear(t *testing.T) {
+func TestMapClear(t *testing.T) {
 	t.Parallel()
 
 	m := syncmap.New[string, int]()
@@ -106,4 +107,96 @@ func TestClear(t *testing.T) {
 			assert.False(t, ok, "key was not deleted on clear")
 		})
 	}
+}
+
+func TestMapSetGetConcurrent(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[int, int]()
+
+	var wg sync.WaitGroup
+
+	// Write.
+	for i := range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Set(i, i)
+		}()
+	}
+
+	// Read.
+	for i := range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Get(i)
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestMapLenConcurrent(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[int, int]()
+
+	var wg sync.WaitGroup
+
+	// Write.
+	for i := range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Set(i, i)
+		}()
+	}
+
+	// Read.
+	for range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Len()
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestMapDeleteConcurrent(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[int, int]()
+
+	var wg sync.WaitGroup
+
+	for i := range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Delete(i)
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestMapClearConcurrent(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[int, int]()
+
+	var wg sync.WaitGroup
+
+	for range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Clear()
+		}()
+	}
+
+	wg.Wait()
 }

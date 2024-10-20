@@ -20,7 +20,10 @@ func New[K comparable, V any]() *Map[K, V] {
 
 // Len returns the length of the [Map].
 func (m *Map[K, V]) Len() int {
-	return len(m.kv)
+	m.mu.RLock()
+	l := len(m.kv)
+	m.mu.RUnlock()
+	return l
 }
 
 // Get returns the value stored in the [Map] for a key, or the zero value if no
@@ -28,21 +31,29 @@ func (m *Map[K, V]) Len() int {
 //
 // The ok result indicates whether the value was found in the map.
 func (m *Map[K, V]) Get(key K) (value V, ok bool) {
+	m.mu.RLock()
 	value, ok = m.kv[key]
+	m.mu.RUnlock()
 	return value, ok
 }
 
 // Set sets the value for a key in the [Map].
 func (m *Map[K, V]) Set(key K, value V) {
+	m.mu.Lock()
 	m.kv[key] = value
+	m.mu.Unlock()
 }
 
 // Delete deletes the value for a key in the [Map].
 func (m *Map[K, V]) Delete(key K) {
+	m.mu.Lock()
 	delete(m.kv, key)
+	m.mu.Unlock()
 }
 
 // Clear deletes all the entries in the [Map].
 func (m *Map[K, V]) Clear() {
+	m.mu.Lock()
 	clear(m.kv)
+	m.mu.Unlock()
 }
