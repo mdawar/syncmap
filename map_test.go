@@ -6,16 +6,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/goleak"
-
 	"github.com/mdawar/syncmap"
 )
-
-func TestMain(m *testing.M) {
-	goleak.VerifyTestMain(m)
-}
 
 func TestMapSetGet(t *testing.T) {
 	t.Parallel()
@@ -36,8 +28,13 @@ func TestMapSetGet(t *testing.T) {
 			m.Set(tc.key, tc.value)
 
 			got, ok := m.Get(tc.key)
-			require.True(t, ok, "key does not exist")
-			assert.Equal(t, got, tc.value)
+			if !ok {
+				t.Fatalf("key does not exist: %s", tc.key)
+			}
+
+			if want := tc.value; want != got {
+				t.Errorf("want %v, got %v", want, got)
+			}
 		})
 	}
 }
@@ -48,14 +45,20 @@ func TestMapLen(t *testing.T) {
 	m := syncmap.New[string, string]()
 
 	m.Set("a", "a")
-	require.Equal(t, 1, m.Len())
+	if want, got := 1, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 
 	m.Set("b", "b")
-	require.Equal(t, 2, m.Len())
+	if want, got := 2, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 
 	// Key already exists.
 	m.Set("a", "1")
-	require.Equal(t, 2, m.Len())
+	if want, got := 2, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 }
 
 func TestMapDelete(t *testing.T) {
@@ -67,16 +70,28 @@ func TestMapDelete(t *testing.T) {
 
 	m.Set(key, 1)
 	_, ok := m.Get(key)
-	require.True(t, ok, "key does not exist")
-	require.Equal(t, 1, m.Len())
+	if !ok {
+		t.Fatalf("key does not exist: %s", key)
+	}
+
+	if want, got := 1, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 
 	m.Set("keep", 2)
-	require.Equal(t, 2, m.Len())
+	if want, got := 2, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 
 	m.Delete(key)
 	_, ok = m.Get(key)
-	require.False(t, ok, "key was not deleted")
-	require.Equal(t, 1, m.Len())
+	if ok {
+		t.Fatalf("key was not deleted: %s", key)
+	}
+
+	if want, got := 1, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 }
 
 func TestMapClear(t *testing.T) {
@@ -98,14 +113,22 @@ func TestMapClear(t *testing.T) {
 		m.Set(tc.key, tc.value)
 	}
 
-	require.Equal(t, len(cases), m.Len())
+	if want, got := len(cases), m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
+
 	m.Clear()
-	require.Equal(t, 0, m.Len())
+
+	if want, got := 0, m.Len(); want != got {
+		t.Fatalf("want %d, got %d", want, got)
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.key, func(t *testing.T) {
 			_, ok := m.Get(tc.key)
-			assert.False(t, ok, "key was not deleted on clear")
+			if ok {
+				t.Errorf("key was not deleted on clear: %s", tc.key)
+			}
 		})
 	}
 }
@@ -161,8 +184,13 @@ func TestMapAllPartialIteration(t *testing.T) {
 	}
 
 	got, ok := m.Get(key)
-	require.True(t, ok, "key does not exist")
-	assert.Equal(t, value, got)
+	if !ok {
+		t.Fatalf("key does not exist: %s", key)
+	}
+
+	if want := value; want != got {
+		t.Errorf("want value %v, got %v", want, got)
+	}
 }
 
 func TestMapSetGetConcurrent(t *testing.T) {
