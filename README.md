@@ -1,5 +1,7 @@
 # syncmap
 
+A simple and generic **Go** map that is safe for concurrent use by multiple goroutines.
+
 ## Installation
 
 ```sh
