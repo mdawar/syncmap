@@ -1,6 +1,10 @@
 # syncmap
 
-A simple and generic **Go** map that is safe for concurrent use by multiple goroutines.
+[![Go Reference](https://pkg.go.dev/badge/github.com/mdawar/syncmap.svg)](https://pkg.go.dev/github.com/mdawar/syncmap)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mdawar/syncmap)](https://goreportcard.com/report/github.com/mdawar/syncmap)
+[![Tests](https://github.com/mdawar/syncmap/actions/workflows/test.yml/badge.svg)](https://github.com/mdawar/syncmap/actions/workflows/test.yml)
+
+A simple and generic **Go** map that is safe for concurrent use.
 
 ## Installation
 
@@ -44,4 +48,14 @@ m := syncmap.NewWithCapacity[string, int](10_000)
 
 // Equivalent to.
 make(map[string]int, 10_000)
+```
+
+## Tests
+
+```sh
+go test -race -cover -vet=all
+# If you have "just" installed.
+just test
+# Or using make.
+make test
 ```
