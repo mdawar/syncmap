@@ -1,7 +1,10 @@
 // Package syncmap provides a simple and generic map that is safe for concurrent use.
 package syncmap
 
-import "sync"
+import (
+	"iter"
+	"sync"
+)
 
 // Map is a map that is safe for concurrent use.
 type Map[K comparable, V any] struct {
@@ -56,4 +59,20 @@ func (m *Map[K, V]) Clear() {
 	m.mu.Lock()
 	clear(m.kv)
 	m.mu.Unlock()
+}
+
+// All returns an iterator over key-value pairs from the [Map].
+//
+// Similar to the map type, the iteration order is not guaranteed.
+func (m *Map[K, V]) All() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+
+		for key, value := range m.kv {
+			if !yield(key, value) {
+				return
+			}
+		}
+	}
 }

@@ -2,6 +2,7 @@ package syncmap_test
 
 import (
 	"fmt"
+	"maps"
 	"sync"
 	"testing"
 
@@ -109,6 +110,61 @@ func TestMapClear(t *testing.T) {
 	}
 }
 
+func TestMapAll(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[string, int]()
+
+	want := map[string]int{
+		"a": 1,
+		"b": 2,
+		"c": 3,
+		"d": 4,
+	}
+
+	for k, v := range want {
+		m.Set(k, v)
+	}
+
+	got := make(map[string]int)
+	for k, v := range m.All() {
+		got[k] = v
+	}
+
+	if !maps.Equal(want, got) {
+		t.Errorf("want %v, got %v", want, got)
+	}
+}
+
+func TestMapAllPartialIteration(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[string, int]()
+
+	want := map[string]int{
+		"a": 1,
+		"b": 2,
+		"c": 3,
+		"d": 4,
+	}
+
+	for k, v := range want {
+		m.Set(k, v)
+	}
+
+	var key string
+	var value int
+	for k, v := range m.All() {
+		key = k
+		value = v
+		break
+	}
+
+	got, ok := m.Get(key)
+	require.True(t, ok, "key does not exist")
+	assert.Equal(t, value, got)
+}
+
 func TestMapSetGetConcurrent(t *testing.T) {
 	t.Parallel()
 
@@ -195,6 +251,35 @@ func TestMapClearConcurrent(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			m.Clear()
+		}()
+	}
+
+	wg.Wait()
+}
+
+func TestMapAllConcurrent(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[int, int]()
+
+	var wg sync.WaitGroup
+
+	// Write.
+	for i := range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			m.Set(i, i)
+		}()
+	}
+
+	// Read.
+	for range 5 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range m.All() {
+			}
 		}()
 	}
 
