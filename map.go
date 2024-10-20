@@ -8,16 +8,24 @@ import (
 
 // Map is a map that is safe for concurrent use.
 type Map[K comparable, V any] struct {
+	kv map[K]V // kv is the underlying map.
 	mu sync.RWMutex
-
-	// kv is the underlying map.
-	kv map[K]V
 }
 
 // New creates a new [Map] that is safe for concurrent use by multiple goroutines.
 func New[K comparable, V any]() *Map[K, V] {
 	return &Map[K, V]{
 		kv: make(map[K]V),
+	}
+}
+
+// NewWithCapacity creates a new [Map] with the specified capacity hint.
+//
+// The capacity hint does not bound the map size, it will create a map with
+// an initial space to hold the specified number of elements.
+func NewWithCapacity[K comparable, V any](capacity int) *Map[K, V] {
+	return &Map[K, V]{
+		kv: make(map[K]V, capacity),
 	}
 }
 
