@@ -56,7 +56,7 @@ func ExampleMap_All() {
 		fmt.Println("Key:", k, "-", "Value:", v)
 	}
 
-	// Output:
+	// Unordered output:
 	// Key: a - Value: 1
 	// Key: b - Value: 2
 	// Key: c - Value: 3
