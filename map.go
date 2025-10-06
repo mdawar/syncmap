@@ -62,6 +62,12 @@ func (m *Map[K, V]) Delete(key K) {
 	m.mu.Unlock()
 }
 
+// Contains reports whether key is present in the [Map].
+func (m *Map[K, V]) Contains(key K) bool {
+	_, ok := m.Get(key)
+	return ok
+}
+
 // Clear deletes all the entries in the [Map].
 func (m *Map[K, V]) Clear() {
 	m.mu.Lock()

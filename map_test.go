@@ -94,6 +94,26 @@ func TestMapDelete(t *testing.T) {
 	}
 }
 
+func TestMapContains(t *testing.T) {
+	t.Parallel()
+
+	m := syncmap.New[string, string]()
+
+	if ok := m.Contains("a"); ok {
+		t.Fatal("want key to be absent from empty map")
+	}
+
+	m.Set("a", "a")
+	if ok := m.Contains("a"); !ok {
+		t.Fatal("want key to exist in map after Set")
+	}
+
+	m.Delete("a")
+	if ok := m.Contains("a"); ok {
+		t.Fatal("want key to be absent after Delete")
+	}
+}
+
 func TestMapClear(t *testing.T) {
 	t.Parallel()
 
