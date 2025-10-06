@@ -27,6 +27,9 @@ v, ok := m.Get("a")
 fmt.Println(v)  // 1
 fmt.Println(ok) // true
 
+// Check for existence.
+m.Contains("a") // true
+
 // Delete.
 m.Delete("b")
 
